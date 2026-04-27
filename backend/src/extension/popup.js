@@ -18,21 +18,56 @@ async function fetchNotes(query = "") {
 }
 
 function renderNotes(notes) {
+  container.innerHTML = "";
+
   if (notes.length === 0) {
-    container.innerHTML = "<p class='no-notes'>No notes found 😢</p>";
+    container.innerHTML = `<p class="no-notes">No notes found 😢</p>`;
     return;
   }
 
-  notes.forEach((note) => {
+  notes.forEach(note => {
     const div = document.createElement("div");
     div.className = "note";
 
+    let isExpanded = false;
+
+    const shortText = note.content.slice(0, 100);
+
     div.innerHTML = `
-  <p>${note.content.slice(0, 120)}...</p>
-  <small>${note.type}</small><br/>
-  <small>${note.tags?.join(", ")}</small><br/>
-  <a href="${note.sourceUrl}" target="_blank">View Source</a>
-`;
+      <p class="content">${shortText}...</p>
+      
+      <div class="actions">
+        <button class="expand-btn">Expand</button>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <small>${note.type}</small>
+    `;
+
+    const contentEl = div.querySelector(".content");
+    const expandBtn = div.querySelector(".expand-btn");
+    const copyBtn = div.querySelector(".copy-btn");
+
+    expandBtn.addEventListener("click", () => {
+      isExpanded = !isExpanded;
+
+      if (isExpanded) {
+        contentEl.textContent = note.content;
+        expandBtn.textContent = "Collapse";
+      } else {
+        contentEl.textContent = shortText + "...";
+        expandBtn.textContent = "Expand";
+      }
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(note.content);
+      copyBtn.textContent = "Copied ✅";
+
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+      }, 1500);
+    });
 
     container.appendChild(div);
   });
