@@ -1,5 +1,6 @@
 const container = document.getElementById("notesContainer");
 const searchInput = document.getElementById("searchInput");
+let currentQuery = "";
 
 async function fetchNotes(query = "") {
   let url;
@@ -34,7 +35,7 @@ function renderNotes(notes) {
     const shortText = note.content.slice(0, 100);
 
     div.innerHTML = `
-      <p class="content">${shortText}...</p>
+      <p class="content">${highlightText(shortText, currentQuery)}...</p>
       
       <div class="actions">
         <button class="expand-btn">Expand</button>
@@ -54,10 +55,10 @@ function renderNotes(notes) {
       isExpanded = !isExpanded;
 
       if (isExpanded) {
-        contentEl.textContent = note.content;
+        contentEl.innerHTML = highlightText(note.content, currentQuery);
         expandBtn.textContent = "Collapse";
       } else {
-        contentEl.textContent = shortText + "...";
+        contentEl.innerHTML = highlightText(shortText, currentQuery) + "...";
         expandBtn.textContent = "Expand";
       }
     });
@@ -109,6 +110,13 @@ function renderNotes(notes) {
   });
 }
 
+function highlightText(text, query) {
+  if (!query) return text;
+
+  const regex = new RegExp(`(${query})`, "gi");
+
+  return text.replace(regex, `<span class="highlight">$1</span>`);
+}
 
 let timeout;
 
@@ -116,8 +124,8 @@ searchInput.addEventListener("input", (e) => {
   clearTimeout(timeout);
 
   timeout = setTimeout(() => {
-    const value = e.target.value;
-    fetchNotes(value);
+    currentQuery = e.target.value;
+    fetchNotes(currentQuery);
   }, 300);
 });
 fetchNotes();
