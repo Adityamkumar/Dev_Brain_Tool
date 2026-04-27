@@ -32,7 +32,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const data = await response.json();
       chrome.notifications.create({
         type: "basic",
-        iconUrl: "icon.png",
+        iconUrl: "icon-48.png",
         title: "DevBrain",
         message: "Saved successfully ✅",
       });
