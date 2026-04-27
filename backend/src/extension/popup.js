@@ -25,7 +25,7 @@ function renderNotes(notes) {
     return;
   }
 
-  notes.forEach(note => {
+  notes.forEach((note) => {
     const div = document.createElement("div");
     div.className = "note";
 
@@ -39,6 +39,7 @@ function renderNotes(notes) {
       <div class="actions">
         <button class="expand-btn">Expand</button>
         <button class="copy-btn">Copy</button>
+        <button class="delete-btn">Delete</button>
       </div>
 
       <small>${note.type}</small>
@@ -47,6 +48,7 @@ function renderNotes(notes) {
     const contentEl = div.querySelector(".content");
     const expandBtn = div.querySelector(".expand-btn");
     const copyBtn = div.querySelector(".copy-btn");
+    const deleteBtn = div.querySelector(".delete-btn");
 
     expandBtn.addEventListener("click", () => {
       isExpanded = !isExpanded;
@@ -69,9 +71,44 @@ function renderNotes(notes) {
       }, 1500);
     });
 
+    deleteBtn.addEventListener("click", async () => {
+      const confirmDelete = confirm("Delete this note?");
+      if (!confirmDelete) return;
+
+      try {
+        deleteBtn.textContent = "Deleting...";
+        deleteBtn.disabled = true;
+
+        const res = await fetch(`http://localhost:8000/api/note/${note._id}`, {
+          method: "DELETE",
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error("Delete failed");
+        }
+        div.classList.add("removing");
+
+        setTimeout(() => {
+          div.remove();
+        }, 200);
+      } catch (error) {
+        console.error("Delete failed:", error);
+
+        deleteBtn.textContent = "Error ❌";
+
+        setTimeout(() => {
+          deleteBtn.textContent = "Delete";
+          deleteBtn.disabled = false;
+        }, 1500);
+      }
+    });
+
     container.appendChild(div);
   });
 }
+
 
 let timeout;
 

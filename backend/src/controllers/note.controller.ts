@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Note } from "../models/note.model";
 import { ApiResponse } from "../utils/ApiResponse";
+import { ApiError } from "../utils/ApiErros";
 
 export const createNote = asyncHandler(async (req:any, res: Response)=>{
    const { content, type, sourceUrl, tags } = req.body
@@ -25,19 +26,16 @@ export const searchNote = asyncHandler(async(req: any, res: Response)=>{
   
 const userId = req.user?.id || "64f123abc123abc123abc123";
 
-// 1. Text search
 const textResults = await Note.find({
   userId,
   $text: { $search: query }
 });
 
-// 2. Regex search
 const regexResults = await Note.find({
   userId,
   content: { $regex: query, $options: "i" }
 });
 
-// 3. Merge + remove duplicates
 const combined = [...textResults, ...regexResults];
 
 const uniqueResults = Array.from(
@@ -57,4 +55,18 @@ export const getAllNotes = asyncHandler(async(req: any, res: Response)=>{
 res
 .status(200)
 .json(new ApiResponse(200, notes, "all notes"))
+})
+
+export const deleteNotes = asyncHandler(async(req: any, res:Response)=>{
+    const { id } = req.params;
+
+    const deleteNote = await Note.findByIdAndDelete(id)
+
+    if(!deleteNote){
+       throw new ApiError(404, "Note not found!")
+    }
+
+  res
+  .status(200)
+  .json(new ApiResponse(200, "Note deleted successfully"))
 })
